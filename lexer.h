@@ -20,6 +20,10 @@ enum class TokenTypes {
 
 };
 
+//My to do list:
+//TODO: set up a gitignore file
+//Add in '!' when you add booleans
+
 struct Token{
     TokenTypes type;
     std::optional<std::string> value{};
@@ -33,14 +37,14 @@ public:
     }
     std::vector<Token> lex(){
         std::vector<Token> tokens;
-        while(fetchNext().has_value()){
+        while(fetchChar().has_value()){
 
             //Keywords and variable names
-            if(isalpha(fetchNext().value())){
-                std::string current = {fetchNext().value()};
+            if(isalpha(fetchChar().value())){
+                std::string current = {fetchChar().value()};
                 m_index++;
-                while(fetchNext().has_value() && isalnum(fetchNext().value())){
-                    current.push_back(fetchNext().value());
+                while(fetchChar().has_value() && isalnum(fetchChar().value())){
+                    current.push_back(fetchChar().value());
                     m_index++;
                 }
                 if(current == "int"){
@@ -55,41 +59,41 @@ public:
             }
 
             //Integers
-            else if(isdigit(fetchNext().value())){ //TODO: get negative signs/numbers and decimals working
-                std::string current = {fetchNext().value()};
+            else if(isdigit(fetchChar().value())){ //TODO: get negative signs/numbers and decimals working
+                std::string current = {fetchChar().value()};
                 m_index++;
-                while(fetchNext().has_value() && isdigit(fetchNext().value())){
-                    current.push_back(fetchNext().value());
+                while(fetchChar().has_value() && isdigit(fetchChar().value())){
+                    current.push_back(fetchChar().value());
                     m_index++;
                 }
                 tokens.push_back({TokenTypes::Token_Int, current});
             }
 
             //Single character tokens
-            else if(fetchNext().value() == '+'){
+            else if(fetchChar().value() == '+'){
                 tokens.push_back({TokenTypes::Token_Plus});
                 std::cout << "+";
             }
-            else if(fetchNext().value() == '*'){
+            else if(fetchChar().value() == '*'){
                 tokens.push_back({TokenTypes::Token_Multiply});
                 std::cout << "*";
             }
-            else if(fetchNext().value() == '{'){
+            else if(fetchChar().value() == '{'){
                 tokens.push_back({TokenTypes::Token_OpenS});
             }
-            else if(fetchNext().value() == '}'){
+            else if(fetchChar().value() == '}'){
                 tokens.push_back({TokenTypes::Token_CloseS});
             }
-            else if(fetchNext().value() == ';'){
+            else if(fetchChar().value() == ';'){
                 tokens.push_back({TokenTypes::Token_Semi});
             }
-            else if(fetchNext().value() == '='){
+            else if(fetchChar().value() == '='){
                 tokens.push_back({TokenTypes::Token_Equal});
             }
-            else if(fetchNext().value() == '('){
+            else if(fetchChar().value() == '('){
                 tokens.push_back({TokenTypes::Token_OpenR});
             }
-            else if(fetchNext().value() == ')'){
+            else if(fetchChar().value() == ')'){
                 tokens.push_back({TokenTypes::Token_CloseR});
             }
             m_index++;
@@ -100,7 +104,7 @@ public:
 private:
     std::string m_input;
     int m_index = 0;
-    std::optional<char> fetchNext(){
+    std::optional<char> fetchChar(){
         if(m_index < m_input.length()){
             if(m_input[m_index] == '/' && m_input[m_index + 1] == '/'){
                 while(m_index < m_input.length() && m_input[m_index] != '\n'){ // TODO: i might not need the first case?

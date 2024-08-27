@@ -5,4 +5,5 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_executable(mini_cpp
         main.cpp
-        lexer.h)
+        lexer.h
+        parser.h)
