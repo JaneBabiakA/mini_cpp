@@ -10,14 +10,14 @@ enum class TokenTypes {
     Token_Def,
     Token_Int_Dec,
     Token_Plus,
-    Token_Multiply,
+    Token_Multiply, //TODO: add in minus and divide
     Token_OpenR, //Round bracket
     Token_CloseR, //Round bracket,
     Token_OpenS, //Squiggle bracket
     Token_CloseS, //Squiggle bracket,
     Token_Semi,
     Token_Equal,
-
+    Token_Comma //TODO: add in comma lexing
 };
 
 //My to do list:
@@ -98,6 +98,7 @@ public:
             }
             m_index++;
         }
+        tokens.push_back({TokenTypes::Token_EOF}); //TODO: remove. just for string input
         return tokens;
     }
 
