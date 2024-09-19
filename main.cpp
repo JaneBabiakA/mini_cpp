@@ -15,10 +15,11 @@ int main(int argc, char* argv[]){
     //Set up for testing binary expressions
     std::stringstream content;
     //content << file.rdbuf();
-    content << "12 * 52 + 23";
+    content << "int main(int argc, int myInt, int janeInt);";
     Lexer myLexer = Lexer(content.str());
     std::vector<Token> tokens = myLexer.lex();
+
     Parser myParser = Parser(tokens);
-    std::unique_ptr<AST> result = myParser.parseBinExpr();
+    std::vector<std::unique_ptr<AST>> result = myParser.parseProgram();
     return 0;
 }

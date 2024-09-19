@@ -7,7 +7,6 @@ enum class TokenTypes {
     Token_Int,
     Token_EOF,
     Token_Ident,
-    Token_Def,
     Token_Int_Dec,
     Token_Plus,
     Token_Multiply, //TODO: add in minus and divide
@@ -17,7 +16,7 @@ enum class TokenTypes {
     Token_CloseS, //Squiggle bracket,
     Token_Semi,
     Token_Equal,
-    Token_Comma //TODO: add in comma lexing
+    Token_Comma
 };
 
 //My to do list:
@@ -38,7 +37,6 @@ public:
     std::vector<Token> lex(){
         std::vector<Token> tokens;
         while(fetchChar().has_value()){
-
             //Keywords and variable names
             if(isalpha(fetchChar().value())){
                 std::string current = {fetchChar().value()};
@@ -47,11 +45,9 @@ public:
                     current.push_back(fetchChar().value());
                     m_index++;
                 }
+                m_index--;
                 if(current == "int"){
                     tokens.push_back({TokenTypes::Token_Int_Dec});
-                }
-                else if(current == "def"){
-                    tokens.push_back({TokenTypes::Token_Def});
                 }
                 else{
                     tokens.push_back({TokenTypes::Token_Ident, current});
@@ -66,6 +62,7 @@ public:
                     current.push_back(fetchChar().value());
                     m_index++;
                 }
+                m_index--;
                 tokens.push_back({TokenTypes::Token_Int, current});
             }
 
@@ -95,6 +92,9 @@ public:
             }
             else if(fetchChar().value() == ')'){
                 tokens.push_back({TokenTypes::Token_CloseR});
+            }
+            else if(fetchChar().value() == ','){
+                tokens.push_back({TokenTypes::Token_Comma});
             }
             m_index++;
         }
