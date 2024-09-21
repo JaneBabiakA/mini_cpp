@@ -155,7 +155,7 @@ class Parser{
     std::unique_ptr<AST> parseBinRHS(int prevPrec, std::unique_ptr<AST> LHS){
         while(true){
             int currPrec = getPrecendence();
-            if(currPrec < prevPrec || fetchToken()->type == TokenTypes::Token_Semi){
+            if(currPrec < prevPrec){
                 return LHS;
             }
             std::unique_ptr<Token> op = fetchToken();
