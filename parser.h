@@ -47,7 +47,6 @@ class FunDecAST: public AST{
     std::vector<std::unique_ptr<AST>> m_args;
 public:
     FunDecAST(std::string type, std::string name, std::vector<std::unique_ptr<AST>> args) : m_type(std::move(type)), m_name(std::move(name)), m_args(std::move(args)) {}
-    [[nodiscard]] const std::string &getName() const { return m_name; }
 };
 
 class FunDefAST: public AST{
@@ -55,6 +54,13 @@ class FunDefAST: public AST{
     std::vector<std::unique_ptr<AST>> m_body;
 public:
     FunDefAST(std::unique_ptr<FunDecAST> dec, std::vector<std::unique_ptr<AST>> body) : m_dec(std::move(dec)), m_body(std::move(body)) {}
+};
+
+class AssignAST: public AST{
+    IdentAST m_ident;
+    std::unique_ptr<AST> m_value;
+public:
+    AssignAST(IdentAST ident, std::unique_ptr<AST> value): m_ident(std::move(ident)), m_value(std::move(value)){};
 };
 
 class Parser{
@@ -91,27 +97,35 @@ class Parser{
         return content;
     }
 
-    std::unique_ptr<AST> parseIdent(){ //TODO: add function parsing into here
+    std::unique_ptr<AST> parseIdent(){
         std::unique_ptr<Token> token = fetchToken();
         m_index++;
-        if(fetchToken()->type != TokenTypes::Token_OpenR){
-            return std::make_unique<IdentAST>(token->value.value());
+        switch(fetchToken()->type){
+            case TokenTypes::Token_OpenR:{
+                std::vector<std::unique_ptr<AST>> args;
+                while(fetchToken()->type != TokenTypes::Token_CloseR){
+                    m_index++;
+                    if(auto arg = parseNode()){
+                        args.push_back(std::move(arg));
+                    }
+                    else{
+                        return nullptr;
+                    }
+                    if(fetchToken()->type != TokenTypes::Token_Comma && fetchToken()->type != TokenTypes::Token_CloseR){
+                        return LogError("Expected ')' or ','");
+                    }
+                }
+                m_index++;
+                return std::make_unique<CallAST>(token->value.value(), std::move(args));
+            }
+            case TokenTypes::Token_Equal: {
+                m_index++;
+                return std::make_unique<AssignAST>(IdentAST(token->value.value()), parseBinExpr());
+            }
+            default: {
+                return std::make_unique<IdentAST>(token->value.value());
+            }
         }
-        std::vector<std::unique_ptr<AST>> args;
-        while(fetchToken()->type != TokenTypes::Token_CloseR){
-            m_index++;
-            if(auto arg = parseNode()){
-                args.push_back(std::move(arg));
-            }
-            else{
-                return nullptr;
-            }
-            if(fetchToken()->type != TokenTypes::Token_Comma && fetchToken()->type != TokenTypes::Token_CloseR){
-                return LogError("Expected ')' or ','");
-            }
-        }
-        m_index++;
-        return std::make_unique<CallAST>(token->value.value(), std::move(args));
     }
 
     std::unique_ptr<AST> parseParam(){ //TODO: support default value for params
@@ -127,10 +141,14 @@ class Parser{
                     return std::make_unique<IntDecAST>(ident, nullptr);
                 }
             }
-            default:
-                ;
+            case TokenTypes::Token_CloseR: {
+                m_index++;
+                return nullptr;
+            }
+            default: {
+                return nullptr;
+            }
         }
-        return nullptr;
     }
     std::unique_ptr<AST> parseNode(){
         switch(fetchToken()->type){
@@ -181,7 +199,7 @@ class Parser{
         }
         return parseBinRHS(0, std::move(LHS));
     }
-    std::unique_ptr<AST> parseLclIntDec(){ //TODO: DONE
+    std::unique_ptr<AST> parseLclIntDec(){
         m_index++;
         if(!fetchToken() || fetchToken()->type != TokenTypes::Token_Ident){
             return LogError("Expected a variable name after 'int'");
@@ -236,7 +254,6 @@ class Parser{
         }
         return nullptr;
     }
-
 public:
     std::vector<std::unique_ptr<AST>> parseProgram(){
         std::vector<std::unique_ptr<AST>> asts;

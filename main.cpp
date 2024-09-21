@@ -15,7 +15,7 @@ int main(int argc, char* argv[]){
     //Set up for testing binary expressions
     std::stringstream content;
     //content << file.rdbuf();
-    content << "int main(int argc, int myInt, int janeInt){int newInt = 3 * 5; otherFunction(newInt);}";
+    content << "int main(int argc, int myInt, int janeInt){int newInt = 3 * 5; otherFunction(newInt); newInt = newInt + 1;}int otherFunction(){}";
     Lexer myLexer = Lexer(content.str());
     std::vector<Token> tokens = myLexer.lex();
     Parser myParser = Parser(tokens);
@@ -23,4 +23,5 @@ int main(int argc, char* argv[]){
     return 0;
 }
 
-//TODO: Add assignation into parseIdent
+//TODO: Add in negative numbers
+//TODO: Add in return statements
