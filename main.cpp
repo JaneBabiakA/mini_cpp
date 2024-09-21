@@ -15,11 +15,12 @@ int main(int argc, char* argv[]){
     //Set up for testing binary expressions
     std::stringstream content;
     //content << file.rdbuf();
-    content << "int main(int argc, int myInt, int janeInt);";
+    content << "int main(int argc, int myInt, int janeInt){int newInt = 3 * 5; otherFunction(newInt);}";
     Lexer myLexer = Lexer(content.str());
     std::vector<Token> tokens = myLexer.lex();
-
     Parser myParser = Parser(tokens);
     std::vector<std::unique_ptr<AST>> result = myParser.parseProgram();
     return 0;
 }
+
+//TODO: Add assignation into parseIdent

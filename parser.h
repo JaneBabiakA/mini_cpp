@@ -21,7 +21,7 @@ class IntAST:  public AST{
 public: IntAST(std::string value) : m_value(value) {}
 };
 
-class IntDecAST: public AST{
+class IntDecAST: public AST{ //TODO: add in scoping?
     IdentAST m_ident;
     std::unique_ptr<AST> m_value; //Should be IntAST or CallAST
 public: IntDecAST(IdentAST ident, std::unique_ptr<AST> value): m_ident(std::move(ident)), m_value(std::move(value)) {}
@@ -97,20 +97,18 @@ class Parser{
         if(fetchToken()->type != TokenTypes::Token_OpenR){
             return std::make_unique<IdentAST>(token->value.value());
         }
-        m_index++;
         std::vector<std::unique_ptr<AST>> args;
         while(fetchToken()->type != TokenTypes::Token_CloseR){
+            m_index++;
             if(auto arg = parseNode()){
-                args.push_back(std::move(parseParam()));
-
+                args.push_back(std::move(arg));
             }
             else{
                 return nullptr;
             }
-            if(fetchToken()->type != TokenTypes::Token_Comma || fetchToken()->type != TokenTypes::Token_CloseR){
+            if(fetchToken()->type != TokenTypes::Token_Comma && fetchToken()->type != TokenTypes::Token_CloseR){
                 return LogError("Expected ')' or ','");
             }
-            m_index++;
         }
         m_index++;
         return std::make_unique<CallAST>(token->value.value(), std::move(args));
@@ -157,7 +155,7 @@ class Parser{
     std::unique_ptr<AST> parseBinRHS(int prevPrec, std::unique_ptr<AST> LHS){
         while(true){
             int currPrec = getPrecendence();
-            if(currPrec < prevPrec){
+            if(currPrec < prevPrec || fetchToken()->type == TokenTypes::Token_Semi){
                 return LHS;
             }
             std::unique_ptr<Token> op = fetchToken();
@@ -176,31 +174,6 @@ class Parser{
             LHS = std::make_unique<BinExprAST>(std::move(op), std::move(LHS), std::move(RHS));
         }
     }
-public:
-    std::vector<std::unique_ptr<AST>> parseProgram(){
-        std::vector<std::unique_ptr<AST>> asts;
-        while(fetchToken()){
-            switch(fetchToken()->type){
-                case TokenTypes::Token_EOF: {
-                    return asts;
-                }
-                case TokenTypes::Token_Semi: {
-                    m_index++;
-                }
-                case TokenTypes::Token_Int_Dec: {
-                    asts.push_back(parseIntDec());
-                }
-                default: {
-                    //TODO
-                }
-            }
-        }
-    }
-
-    explicit Parser(std::vector<Token> tokens){
-        m_tokens = std::move(tokens);
-    }
-
     std::unique_ptr<AST> parseBinExpr() { //TODO: DONE
         auto LHS = parseNode();
         if (!LHS) {
@@ -208,8 +181,28 @@ public:
         }
         return parseBinRHS(0, std::move(LHS));
     }
+    std::unique_ptr<AST> parseLclIntDec(){ //TODO: DONE
+        m_index++;
+        if(!fetchToken() || fetchToken()->type != TokenTypes::Token_Ident){
+            return LogError("Expected a variable name after 'int'");
+        }
+        std::string name = fetchToken()->value.value();
+        m_index++;
 
-    std::unique_ptr<AST> parseIntDec(){ //TODO: DONE
+        //Handle declaration possibility
+        if(fetchToken()->type == TokenTypes::Token_Semi){
+            m_index++;
+            return std::make_unique<IntDecAST>(IdentAST(name), nullptr);
+        }
+
+        //Handle assignment possibility
+        if(fetchToken()->type == TokenTypes::Token_Equal){
+            m_index++;
+            return std::make_unique<IntDecAST>(IdentAST(name), parseBinExpr());
+        }
+        return nullptr; //TODO: Better error handling
+    }
+    std::unique_ptr<AST> parseGlblIntDec(){
         m_index++;
         if(!fetchToken() || fetchToken()->type != TokenTypes::Token_Ident){
             return LogError("Expected a variable name after 'int'");
@@ -233,7 +226,8 @@ public:
             }
             std::unique_ptr<FunDecAST> dec = std::make_unique<FunDecAST>("int", name, std::move(params)); //Parse function declaration
             if(fetchToken()->type == TokenTypes::Token_OpenS){ //Parse function definition
-                return std::make_unique<FunDefAST>(std::move(dec), parseProgram());
+                m_index++;
+                return std::make_unique<FunDefAST>(std::move(dec), parseBody());
             }
             if(fetchToken()->type != TokenTypes::Token_Semi){ //Handle error
                 return LogError("Expected ';'");
@@ -241,5 +235,61 @@ public:
             return dec;
         }
         return nullptr;
+    }
+
+public:
+    std::vector<std::unique_ptr<AST>> parseProgram(){
+        std::vector<std::unique_ptr<AST>> asts;
+        while(fetchToken()){
+            switch(fetchToken()->type){
+                case TokenTypes::Token_EOF: {
+                    return asts;
+                }
+                case TokenTypes::Token_Semi: {
+                    m_index++;
+                    break;
+                }
+                case TokenTypes::Token_Int_Dec: {
+                    asts.push_back(parseGlblIntDec());
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+        }
+    }
+
+
+    std::vector<std::unique_ptr<AST>> parseBody(){ //TODO: add in assignation (peanut = 2 + 3;) -> can be added into parseIdent()
+        std::vector<std::unique_ptr<AST>> asts;
+        while(fetchToken()){
+            switch(fetchToken()->type){
+                case TokenTypes::Token_Ident: {
+                    asts.push_back(parseIdent());
+                    break;
+                }
+                case TokenTypes::Token_Int_Dec: {
+                    asts.push_back(parseLclIntDec());
+                    break;
+                }
+                case TokenTypes::Token_Semi: {
+                    m_index++;
+                    break;
+                }
+                case TokenTypes::Token_CloseS: {
+                    m_index++; //Close up function
+                    return asts;
+                }
+                default: {
+                    break;
+                }
+            }
+        }
+        return asts;
+    }
+
+    explicit Parser(std::vector<Token> tokens){
+        m_tokens = std::move(tokens);
     }
 };
