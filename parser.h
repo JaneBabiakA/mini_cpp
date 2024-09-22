@@ -63,6 +63,12 @@ public:
     AssignAST(IdentAST ident, std::unique_ptr<AST> value): m_ident(std::move(ident)), m_value(std::move(value)){};
 };
 
+class ReturnAST: public AST{
+    std::unique_ptr<AST> m_value;
+public:
+    ReturnAST(std::unique_ptr<AST> value): m_value(std::move(value)){};
+};
+
 class Parser{
     int m_index = 0;
     static inline std::map<TokenTypes, int> m_precedence = {{TokenTypes::Token_Plus, 1}, {TokenTypes::Token_Multiply, 2}};
@@ -254,6 +260,10 @@ class Parser{
         }
         return nullptr;
     }
+    std::unique_ptr<AST> parseReturn(){ //Verify that it is followed be a ;?
+        m_index++;
+        return std::make_unique<ReturnAST>(parseNode());
+    }
 public:
     std::vector<std::unique_ptr<AST>> parseProgram(){
         std::vector<std::unique_ptr<AST>> asts;
@@ -275,6 +285,7 @@ public:
                 }
             }
         }
+        return asts;
     }
 
 
@@ -297,6 +308,9 @@ public:
                 case TokenTypes::Token_CloseS: {
                     m_index++; //Close up function
                     return asts;
+                }
+                case TokenTypes::Token_Return: {
+                    asts.push_back(parseReturn());
                 }
                 default: {
                     break;

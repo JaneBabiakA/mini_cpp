@@ -16,7 +16,8 @@ enum class TokenTypes {
     Token_CloseS, //Squiggle bracket,
     Token_Semi,
     Token_Equal,
-    Token_Comma
+    Token_Comma,
+    Token_Return
 };
 
 //My to do list:
@@ -48,6 +49,9 @@ public:
                 m_index--;
                 if(current == "int"){
                     tokens.push_back({TokenTypes::Token_Int_Dec});
+                }
+                else if(current == "return"){
+                    tokens.push_back({TokenTypes::Token_Return});
                 }
                 else{
                     tokens.push_back({TokenTypes::Token_Ident, current});
