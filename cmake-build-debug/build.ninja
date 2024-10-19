@@ -55,6 +55,18 @@ build CMakeFiles/mini_cpp.dir/main.cpp.o: CXX_COMPILER__mini_cpp_unscanned_Debug
   OBJECT_DIR = CMakeFiles/mini_cpp.dir
   OBJECT_FILE_DIR = CMakeFiles/mini_cpp.dir
 
+build CMakeFiles/mini_cpp.dir/parser.cpp.o: CXX_COMPILER__mini_cpp_unscanned_Debug /home/janef/CLionProjects/mini_cpp/parser.cpp || cmake_object_order_depends_target_mini_cpp
+  DEP_FILE = CMakeFiles/mini_cpp.dir/parser.cpp.o.d
+  FLAGS = -g -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles/mini_cpp.dir
+  OBJECT_FILE_DIR = CMakeFiles/mini_cpp.dir
+
+build CMakeFiles/mini_cpp.dir/codegen.cpp.o: CXX_COMPILER__mini_cpp_unscanned_Debug /home/janef/CLionProjects/mini_cpp/codegen.cpp || cmake_object_order_depends_target_mini_cpp
+  DEP_FILE = CMakeFiles/mini_cpp.dir/codegen.cpp.o.d
+  FLAGS = -g -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles/mini_cpp.dir
+  OBJECT_FILE_DIR = CMakeFiles/mini_cpp.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target mini_cpp
@@ -63,7 +75,7 @@ build CMakeFiles/mini_cpp.dir/main.cpp.o: CXX_COMPILER__mini_cpp_unscanned_Debug
 #############################################
 # Link the executable mini_cpp
 
-build mini_cpp: CXX_EXECUTABLE_LINKER__mini_cpp_Debug CMakeFiles/mini_cpp.dir/main.cpp.o
+build mini_cpp: CXX_EXECUTABLE_LINKER__mini_cpp_Debug CMakeFiles/mini_cpp.dir/main.cpp.o CMakeFiles/mini_cpp.dir/parser.cpp.o CMakeFiles/mini_cpp.dir/codegen.cpp.o
   FLAGS = -g
   OBJECT_DIR = CMakeFiles/mini_cpp.dir
   POST_BUILD = :
