@@ -2,10 +2,8 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <map>
 #include "trees.fwd.h"
-#include "trees.h"
-#include "parser.h"
-#include "lexer.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
@@ -16,7 +14,7 @@ class GeneratorVisitor{
     std::unique_ptr<llvm::LLVMContext> ctx;
     std::unique_ptr<llvm::IRBuilder<>> bldr;
     std::unique_ptr<llvm::Module> mdl;
-    std::map<std::string, llvm::Value *> values;
+    std::map<std::string, llvm::Value*> values;
 public:
 llvm::Value* generate(IntDecAST *ast);
 llvm::Value* generate(CallAST *ast);

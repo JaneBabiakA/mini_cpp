@@ -1,6 +1,6 @@
-#include "trees.fwd.h"
-#include "parser.h"
 #include "lexer.h"
+#include "trees.h"
+#include "parser.h"
 #include "codegen.h"
 #include <string>
 #include <vector>
@@ -51,24 +51,24 @@ llvm::Function* GeneratorVisitor::generate(FunDecAST *ast){ //TODO: Edit this on
 }
 
 llvm::Function *GeneratorVisitor::generate(FunDefAST *ast){
-    llvm::Function *function = mdl->getFunction(ast->m_dec.m_name);
-//    if(!function){
-//        function = m_dec->codegen();
-//    }
-//    if(!function->empty()){
-//        return nullptr;
-//        //return (llvm::Function*)LogErrorV("Function cannot be redefined.")
-//    }
-//    llvm::BasicBlock *block = llvm::BasicBlock::Create(*ctx, "entry", function);
-//    bldr->SetInsertPoint(block);
-//    values.clear(); //TODO: check on this later
-//    for(auto &arg : function->args()){
-//        values[std::string(arg.getName())] = &arg;
-//    }
-//    for(auto &ast : m_body){
-//        ast->codegen();
-//    }
-//    llvm::verifyFunction(*function);
+    llvm::Function *function = mdl->getFunction(ast->m_dec->m_name);
+    if(!function){
+        function = ast->m_dec->accept(this);
+    }
+    if(!function->empty()){
+        return nullptr;
+        //return (llvm::Function*)LogErrorV("Function cannot be redefined.")
+    }
+    llvm::BasicBlock *block = llvm::BasicBlock::Create(*ctx, "entry", function);
+    bldr->SetInsertPoint(block);
+    values.clear(); //TODO: check on this later
+    for(auto &arg : function->args()){
+        values[std::string(arg.getName())] = &arg;
+    }
+    for(auto &ast : ast->m_body){
+        ast->accept(this);
+    }
+    llvm::verifyFunction(*function);
     return function;
 }
 

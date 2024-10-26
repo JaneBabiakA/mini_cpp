@@ -1,6 +1,7 @@
 #include<iostream>
 #include<fstream>
 #include<sstream>
+#include <memory>
 #include <llvm-14/llvm/Support/raw_ostream.h>
 #include"lexer.h"
 #include "trees.fwd.h"
@@ -10,8 +11,9 @@
 
 int main(int argc, char* argv[]){
     if(argc != 2){
-        std::cerr << "Error" << std::endl;
-        return 1;
+        //std::cerr << "Error" << std::endl;
+        //return 1;
+        ;
     }
     std::fstream file(argv[1]);
 
@@ -22,12 +24,13 @@ int main(int argc, char* argv[]){
     Lexer myLexer = Lexer(content.str());
     std::vector<Token> tokens = myLexer.lex();
     Parser myParser = Parser(tokens);
-    ExpressionAST other_test;
 
     auto result = myParser.parseProgram();
-    GeneratorVisitor myGenerator = GeneratorVisitor();
-    //auto *test = std::get<ExpressionAST>(*result[0]).accept(myGenerator);
-    //test->print(llvm::errs());
+    GeneratorVisitor* myGenerator = new GeneratorVisitor();
+    auto yeah = std::move(std::get<std::unique_ptr<FunctionAST>>(result[0]));
+    auto* test = yeah->accept(myGenerator);
+    std::cout << "in main?" << std::endl;
+    test->print(llvm::errs());
     return 0;
 }
 

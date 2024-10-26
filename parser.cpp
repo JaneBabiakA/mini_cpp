@@ -13,10 +13,9 @@ std::unique_ptr<ExpressionAST> Parser::LogError(char *error){
     return nullptr;
 }
 
-std::unique_ptr<std::variant<ExpressionAST, FunctionAST>> Parser::LogErrorV(char *error){
-    fprintf(stderr, "Error: %s\n", error);
-    return nullptr;
-};
+std::variant<std::unique_ptr<ExpressionAST>, std::unique_ptr<FunctionAST>> Parser::LogErrorV(char *error) {
+    throw ("Error: %s\n", error);
+}
 
 std::unique_ptr<IntAST> Parser::parseInt(){
     auto result = std::make_unique<IntAST>(fetchToken()->value.value());
@@ -165,7 +164,7 @@ std::unique_ptr<ExpressionAST> Parser::parseLclIntDec(){
     return nullptr; //TODO: Better error handling
 }
 
-std::unique_ptr<std::variant<ExpressionAST, FunctionAST>> Parser::parseGlblIntDec(){
+std::variant<std::unique_ptr<ExpressionAST>, std::unique_ptr<FunctionAST>> Parser::parseGlblIntDec(){
     m_index++;
     if(!fetchToken() || fetchToken()->type != TokenTypes::Token_Ident){
         return LogErrorV("Expected a variable name after 'int'");
@@ -176,7 +175,7 @@ std::unique_ptr<std::variant<ExpressionAST, FunctionAST>> Parser::parseGlblIntDe
     //Handle assignment possibility
     if(fetchToken()->type == TokenTypes::Token_Equal){
         m_index++;
-        return std::make_unique<std::variant<ExpressionAST, FunctionAST>>(IntDecAST(IdentAST(name), parseBinExpr()));
+        return std::make_unique<ExpressionAST>(IntDecAST(IdentAST(name), parseBinExpr()));
     }
 
     //Handle function declaration/definition possibility
@@ -187,17 +186,17 @@ std::unique_ptr<std::variant<ExpressionAST, FunctionAST>> Parser::parseGlblIntDe
             params.push_back(std::move(param));
             m_index++;
         }
-        FunDecAST dec = FunDecAST("int", name, std::move(params)); //Parse function declaration
+        std::unique_ptr<FunDecAST> dec = std::make_unique<FunDecAST>("int", name, std::move(params)); //Parse function declaration
         if(fetchToken()->type == TokenTypes::Token_OpenS){ //Parse function definition
             m_index++;
-            return std::make_unique<std::variant<ExpressionAST, FunctionAST>>(FunDefAST(std::move(dec), parseBody()));
+            return std::make_unique<FunDefAST>(FunDefAST(std::move(dec), parseBody()));;
         }
         if(fetchToken()->type != TokenTypes::Token_Semi){ //Handle error
             return LogErrorV("Expected ';'");
         }
-        return std::make_unique<std::variant<ExpressionAST, FunctionAST>>(dec);
+        return dec;
     }
-    return nullptr;
+    return LogErrorV("Error of some kind");
 }
 
 std::unique_ptr<ExpressionAST> Parser::parseReturn(){ //Verify that it is followed be a ;?
@@ -205,8 +204,8 @@ std::unique_ptr<ExpressionAST> Parser::parseReturn(){ //Verify that it is follow
     return std::make_unique<ReturnAST>(parseBinExpr());
 }
 
-std::vector<std::unique_ptr<std::variant<ExpressionAST, FunctionAST>>> Parser::parseProgram(){
-    std::vector<std::unique_ptr<std::variant<ExpressionAST, FunctionAST>>> asts;
+std::vector<std::variant<std::unique_ptr<ExpressionAST>, std::unique_ptr<FunctionAST>>> Parser::parseProgram(){
+    std::vector<std::variant<std::unique_ptr<ExpressionAST>, std::unique_ptr<FunctionAST>>> asts;
     while(fetchToken()){
         switch(fetchToken()->type){
             case TokenTypes::Token_EOF: {

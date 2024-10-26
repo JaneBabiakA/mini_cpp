@@ -25,7 +25,7 @@ class Parser{
     std::unique_ptr<ExpressionAST> parseBinRHS(int prevPrec, std::unique_ptr<ExpressionAST> LHS);
     std::unique_ptr<ExpressionAST> parseBinExpr();
     std::unique_ptr<ExpressionAST> parseLclIntDec();
-    std::unique_ptr<std::variant<ExpressionAST, FunctionAST>> parseGlblIntDec();
+    std::variant<std::unique_ptr<ExpressionAST>, std::unique_ptr<FunctionAST>> parseGlblIntDec();
     std::unique_ptr<ExpressionAST> parseReturn();
     std::vector<std::unique_ptr<ExpressionAST>> parseBody();
 public:
@@ -33,7 +33,7 @@ public:
         m_tokens = std::move(tokens);
     }
 
-    std::vector<std::unique_ptr<std::variant<ExpressionAST, FunctionAST>>> parseProgram();
+    std::vector<std::variant<std::unique_ptr<ExpressionAST>, std::unique_ptr<FunctionAST>>> parseProgram();
 
-    std::unique_ptr<std::variant<ExpressionAST, FunctionAST>> LogErrorV(char *error);
+    std::variant<std::unique_ptr<ExpressionAST>, std::unique_ptr<FunctionAST>> LogErrorV(char *error);
 };

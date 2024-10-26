@@ -2,12 +2,8 @@
 #include <string>
 #include <memory>
 #include <vector>
-//#include <llvm-18/llvm/IR/Value.h>
-//#include <llvm-18/llvm/IR/Function.h>
 #include "lexer.h" //TODO: phase out
-#include "codegen.fwd.h"
 #include "codegen.h"
-
 #include <llvm-18/llvm/IR/DerivedTypes.h>
 #include <llvm-14/llvm/IR/Verifier.h>
 #include <llvm-14/llvm/IR/IRBuilder.h>
@@ -25,9 +21,6 @@
 
 class ExpressionAST{
 public:
-    ExpressionAST() {
-
-    }
     virtual llvm::Value* accept(GeneratorVisitor *visitor){
         return nullptr;
     };
@@ -35,10 +28,8 @@ public:
 
 class FunctionAST{
 public:
-    FunctionAST(){
-
-    }
     virtual llvm::Function* accept(GeneratorVisitor *visitor){
+        std::cout << "here base class" << std::endl;
         return nullptr;
     };
 };
@@ -97,7 +88,7 @@ class FunDecAST: public FunctionAST{ //TODO: create getter for name
 public:
     FunDecAST(std::string type, std::string name, std::vector<std::unique_ptr<IntDecAST>> args) : m_type(std::move(type)), m_name(std::move(name)), m_args(std::move(args)) {}
     std::string m_name;
-    llvm::Function* accept(GeneratorVisitor *visitor){
+    virtual llvm::Function* accept(GeneratorVisitor *visitor) override{
         return visitor->generate(this);
     }
     std::string m_type;
@@ -106,11 +97,11 @@ public:
 
 class FunDefAST: public FunctionAST{
 public:
-    FunDefAST(FunDecAST dec, std::vector<std::unique_ptr<ExpressionAST>> body) : m_dec(std::move(dec)), m_body(std::move(body)) {}
-    llvm::Function* accept(GeneratorVisitor *visitor){
+    FunDefAST(std::unique_ptr<FunDecAST> dec, std::vector<std::unique_ptr<ExpressionAST>> body) : m_dec(std::move(dec)), m_body(std::move(body)) {}
+    virtual llvm::Function* accept(GeneratorVisitor *visitor) override{
         return visitor->generate(this);
     }
-    FunDecAST m_dec;
+    std::unique_ptr<FunDecAST> m_dec;
     std::vector<std::unique_ptr<ExpressionAST>> m_body;
 };
 
