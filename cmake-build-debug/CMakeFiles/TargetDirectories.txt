@@ -1,3 +1,0 @@
-/home/janef/CLionProjects/mini_cpp/cmake-build-debug/CMakeFiles/mini_cpp.dir
-/home/janef/CLionProjects/mini_cpp/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/janef/CLionProjects/mini_cpp/cmake-build-debug/CMakeFiles/rebuild_cache.dir

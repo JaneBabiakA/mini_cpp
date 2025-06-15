@@ -11,7 +11,7 @@
 
 class Parser{
     int m_index = 0;
-    static inline std::map<TokenTypes, int> m_precedence = {{TokenTypes::Token_Plus, 1}, {TokenTypes::Token_Multiply, 2}};
+    static inline std::map<TokenTypes, int> m_precedence = {{TokenTypes::Token_Plus, 1}, {TokenTypes::Token_Minus, 1}, {TokenTypes::Token_Multiply, 2}, {TokenTypes::Token_Divide, 2}};
     std::vector<Token> m_tokens;
 
     std::unique_ptr<Token> fetchToken();
@@ -28,6 +28,7 @@ class Parser{
     std::variant<std::unique_ptr<ExpressionAST>, std::unique_ptr<FunctionAST>> parseGlblIntDec();
     std::unique_ptr<ExpressionAST> parseReturn();
     std::vector<std::unique_ptr<ExpressionAST>> parseBody();
+    std::unique_ptr<ExpressionAST> parseConditional();
 public:
     explicit Parser(std::vector<Token> tokens){
         m_tokens = std::move(tokens);

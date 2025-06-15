@@ -21,3 +21,5 @@ class FunDefAST;
 class AssignAST;
 
 class ReturnAST;
+
+class IfElseAST;

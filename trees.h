@@ -4,9 +4,9 @@
 #include <vector>
 #include "lexer.h" //TODO: phase out
 #include "codegen.h"
-#include <llvm-18/llvm/IR/DerivedTypes.h>
-#include <llvm-14/llvm/IR/Verifier.h>
-#include <llvm-14/llvm/IR/IRBuilder.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Verifier.h>
+#include <llvm/IR/IRBuilder.h>
 #include "llvm/ADT/APInt.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
@@ -29,7 +29,6 @@ public:
 class FunctionAST{
 public:
     virtual llvm::Function* accept(GeneratorVisitor *visitor){
-        std::cout << "here base class" << std::endl;
         return nullptr;
     };
 };
@@ -49,7 +48,6 @@ public:
     llvm::Value* accept(GeneratorVisitor *visitor){
         return visitor->generate(this);
     }
-
     std::string m_value;
 };
 
@@ -122,4 +120,15 @@ public:
         return visitor->generate(this);
     }
     std::unique_ptr<ExpressionAST> m_value;
+};
+
+class IfElseAST: public ExpressionAST{
+public:
+    IfElseAST(std::unique_ptr<ExpressionAST> condition, std::vector<std::unique_ptr<ExpressionAST>> body, std::vector<std::unique_ptr<ExpressionAST>> _else) : m_condition(std::move(condition)), m_body(std::move(body)), m_else(std::move(_else)){};
+    std::unique_ptr<ExpressionAST> m_condition;
+    std::vector<std::unique_ptr<ExpressionAST>> m_body;
+    std::vector<std::unique_ptr<ExpressionAST>> m_else;
+    llvm::Value* accept(GeneratorVisitor *visitor){
+        return visitor->generate(this);
+    }
 };

@@ -9,7 +9,9 @@ enum class TokenTypes {
     Token_Ident,
     Token_Int_Dec,
     Token_Plus,
-    Token_Multiply, //TODO: add in minus and divide
+    Token_Minus,
+    Token_Multiply,
+    Token_Divide,
     Token_OpenR, //Round bracket
     Token_CloseR, //Round bracket,
     Token_OpenS, //Squiggle bracket
@@ -17,12 +19,10 @@ enum class TokenTypes {
     Token_Semi,
     Token_Equal,
     Token_Comma,
-    Token_Return
+    Token_Return,
+    Token_If,
+    Token_Else
 };
-
-//My to do list:
-//TODO: set up a gitignore file
-//Add in '!' when you add booleans
 
 struct Token{
     TokenTypes type;
@@ -33,6 +33,7 @@ class Lexer{
 
 public:
     explicit Lexer(std::string input){
+        std::cout << input << std::endl;
         m_input = std::move(input);
     }
     std::vector<Token> lex(){
@@ -53,13 +54,19 @@ public:
                 else if(current == "return"){
                     tokens.push_back({TokenTypes::Token_Return});
                 }
+                else if(current == "if"){
+                    tokens.push_back({TokenTypes::Token_If});
+                }
+                else if(current == "else"){
+                    tokens.push_back({TokenTypes::Token_Else});
+                }
                 else{
                     tokens.push_back({TokenTypes::Token_Ident, current});
                 }
             }
 
             //Integers
-            else if(isdigit(fetchChar().value())){ //TODO: get negative signs/numbers and decimals working
+            else if(isdigit(fetchChar().value())){
                 std::string current = {fetchChar().value()};
                 m_index++;
                 while(fetchChar().has_value() && isdigit(fetchChar().value())){
@@ -73,11 +80,15 @@ public:
             //Single character tokens
             else if(fetchChar().value() == '+'){
                 tokens.push_back({TokenTypes::Token_Plus});
-                std::cout << "+";
+            }            
+            else if(fetchChar().value() == '-'){
+                tokens.push_back({TokenTypes::Token_Minus});
             }
             else if(fetchChar().value() == '*'){
                 tokens.push_back({TokenTypes::Token_Multiply});
-                std::cout << "*";
+            }
+            else if(fetchChar().value() == '/'){
+                tokens.push_back({TokenTypes::Token_Divide});
             }
             else if(fetchChar().value() == '{'){
                 tokens.push_back({TokenTypes::Token_OpenS});
@@ -102,7 +113,7 @@ public:
             }
             m_index++;
         }
-        tokens.push_back({TokenTypes::Token_EOF}); //TODO: remove. just for string input
+        tokens.push_back({TokenTypes::Token_EOF});
         return tokens;
     }
 

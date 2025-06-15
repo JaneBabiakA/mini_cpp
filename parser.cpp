@@ -47,9 +47,6 @@ std::unique_ptr<ExpressionAST> Parser::parseIdent(){
                 if(auto arg = parseNode()){
                     args.push_back(std::move(arg));
                 }
-                else{
-                    return nullptr;
-                }
                 if(fetchToken()->type != TokenTypes::Token_Comma && fetchToken()->type != TokenTypes::Token_CloseR){
                     return LogError("Expected ')' or ','");
                 }
@@ -98,8 +95,9 @@ std::unique_ptr<ExpressionAST> Parser::parseNode(){
             return parseInt();
         case TokenTypes::Token_OpenR:
             return parseBrac();
-        default:
-            return LogError("Unknown token");
+        default: {
+            return nullptr;
+        }
     }
 }
 
@@ -134,7 +132,7 @@ std::unique_ptr<ExpressionAST> Parser::parseBinRHS(int prevPrec, std::unique_ptr
     }
 }
 
-std::unique_ptr<ExpressionAST> Parser::parseBinExpr() { //TODO: DONE
+std::unique_ptr<ExpressionAST> Parser::parseBinExpr() {
     auto LHS = parseNode();
     if (!LHS) {
         return nullptr;
@@ -227,7 +225,7 @@ std::vector<std::variant<std::unique_ptr<ExpressionAST>, std::unique_ptr<Functio
     return asts;
 }
 
-std::vector<std::unique_ptr<ExpressionAST>> Parser::parseBody(){ //TODO: add in assignation (peanut = 2 + 3;) -> can be added into parseIdent()
+std::vector<std::unique_ptr<ExpressionAST>> Parser::parseBody(){
     std::vector<std::unique_ptr<ExpressionAST>> asts;
     while(fetchToken()){
         switch(fetchToken()->type){
@@ -249,6 +247,11 @@ std::vector<std::unique_ptr<ExpressionAST>> Parser::parseBody(){ //TODO: add in 
             }
             case TokenTypes::Token_Return: {
                 asts.push_back(parseReturn());
+                break;
+            }
+            case TokenTypes::Token_If: {
+                asts.push_back(parseConditional());
+                break;
             }
             default: {
                 break;
@@ -257,3 +260,23 @@ std::vector<std::unique_ptr<ExpressionAST>> Parser::parseBody(){ //TODO: add in 
     }
     return asts;
 }
+
+std::unique_ptr<ExpressionAST> Parser::parseConditional(){
+    m_index++;
+    std::unique_ptr<ExpressionAST> cond = parseBrac();
+    m_index++;
+    std::vector<std::unique_ptr<ExpressionAST>> body = parseBody();
+    std::vector<std::unique_ptr<ExpressionAST>> _else;
+    if(fetchToken() && fetchToken()->type == TokenTypes::Token_Else){
+        m_index++;
+        if(fetchToken() && fetchToken()->type == TokenTypes::Token_OpenS){
+            m_index++;
+        }
+        else if(!fetchToken() || fetchToken()->type != TokenTypes::Token_If){
+            return LogError("Missing else statement body");
+        }
+        _else = parseBody();
+    }
+    return std::make_unique<IfElseAST>(std::move(cond), std::move(body), std::move(_else));
+}
+

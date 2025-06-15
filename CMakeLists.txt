@@ -7,9 +7,7 @@ add_executable(mini_cpp
         main.cpp
         lexer.h
         parser.h
-        codegen.h
         trees.h
         parser.cpp
-        codegen.cpp
         trees.fwd.h
-        codegen.fwd.h)
+        codegen.cpp)
