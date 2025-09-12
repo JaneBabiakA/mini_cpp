@@ -6,8 +6,8 @@
 #include <map>
 #include <variant>
 #include "lexer.h"
-#include "trees.fwd.h"
-#include "trees.h"
+#include "./../trees.fwd.h"
+#include "./../trees.h"
 
 class Parser{
     int m_index = 0;

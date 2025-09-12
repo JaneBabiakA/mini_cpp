@@ -1,6 +1,6 @@
-#include "lexer.h"
-#include "trees.h"
-#include "parser.h"
+#include "./../frontend/lexer.h"
+#include "./../trees.h"
+#include "./../frontend/parser.h"
 #include "codegen.h"
 #include <string>
 #include <vector>
@@ -16,11 +16,20 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
+#include "llvm/IR/GlobalVariable.h"
 #include <iostream>
 
 llvm::Value* GeneratorVisitor::generate(IntDecAST* ast){
-    llvm::AllocaInst* alloc = bldr->CreateAlloca(llvm::Type::getInt32Ty(*ctx), nullptr, ast->m_ident.m_name);
-    if(ast->m_value){ //TODO: check type?
+    llvm::Type* intType = llvm::Type::getInt32Ty(*ctx);
+    // Check variable scope
+    if(ast->m_isGlobal){ 
+        llvm::Constant* init = llvm::ConstantInt::get(intType, 0);
+        auto* globalVar =  new llvm::GlobalVariable(*mdl, intType, false, llvm::GlobalValue::ExternalLinkage, init, ast->m_ident.m_name);
+        globalVars.push_back(ast);
+        return globalVar;
+    }
+    llvm::AllocaInst* alloc = bldr->CreateAlloca(intType, nullptr, ast->m_ident.m_name);
+    if(ast->m_value){
         bldr->CreateStore(ast->m_value->accept(this), alloc);
     }
     values[ast->m_ident.m_name] = alloc;
@@ -30,10 +39,10 @@ llvm::Value* GeneratorVisitor::generate(IntDecAST* ast){
 llvm::Value* GeneratorVisitor::generate(CallAST* ast){
     llvm::Function *call = mdl->getFunction(ast->m_call);
     if(!call){
-        return nullptr; //something about unknown function
+        return nullptr;
     }
-    if(call->arg_size() != ast->m_args.size()){ //Check for correct number of arguments
-        return nullptr; //error
+    if(call->arg_size() != ast->m_args.size()){ // Check for correct number of arguments
+        return nullptr;
     }
     std::vector<llvm::Value *> argsIR;
     for(auto & m_arg : ast->m_args){
@@ -45,7 +54,7 @@ llvm::Value* GeneratorVisitor::generate(CallAST* ast){
     return bldr->CreateCall(call, argsIR, "calltmp");
 }
 
-llvm::Function* GeneratorVisitor::generate(FunDecAST* ast){ //TODO: Edit this once I add in function types
+llvm::Function* GeneratorVisitor::generate(FunDecAST* ast){
     std::vector<llvm::Type *> arg_types(ast->m_args.size(), llvm::Type::getInt32Ty(*ctx));
     llvm::FunctionType *fun_type = llvm::FunctionType::get(llvm::Type::getInt32Ty(*ctx), arg_types, false);
 
@@ -70,7 +79,17 @@ llvm::Function* GeneratorVisitor::generate(FunDefAST* ast){
     }
     llvm::BasicBlock *block = llvm::BasicBlock::Create(*ctx, "entry", function);
     bldr->SetInsertPoint(block);
-    values.clear(); //TODO: check on this later
+    values.clear();
+
+    // Initialize all uninitialized global variables
+    for(auto globalVar: globalVars){
+        llvm::GlobalVariable *test = mdl->getGlobalVariable(globalVar->m_ident.m_name);
+        bldr->CreateStore(globalVar->m_value->accept(this), test);
+    }
+    // TODO: delete all global vars
+    globalVars.clear();
+
+    // Allocate and initialize all arguments
     for(auto &arg : function->args()){
         llvm::AllocaInst* alloc = bldr->CreateAlloca(llvm::Type::getInt32Ty(*ctx), nullptr, arg.getName());
         bldr->CreateStore(&arg, alloc);
@@ -80,7 +99,7 @@ llvm::Function* GeneratorVisitor::generate(FunDefAST* ast){
         ast->accept(this);
     }
     llvm::verifyFunction(*function);
-    // fpm->run(*function, *fam); <- function pass manager
+    fpm->run(*function, *fam);
     return function;
 }
 
@@ -94,23 +113,26 @@ llvm::Value* GeneratorVisitor::generate(IntAST* ast){
 }
 
 llvm::Value* GeneratorVisitor::generate(IdentAST* ast){
-    llvm::AllocaInst *alloc = values[ast->m_name]; //Look up variable
-    if(!alloc){
-        //return error("Unknown variable name")
+    if(llvm::GlobalVariable *globalVar = mdl->getGlobalVariable(ast->m_name)){ // Check if name matches a global variable
+        return bldr->CreateLoad(globalVar->getValueType(), globalVar, ast->m_name);
     }
-    return bldr->CreateLoad(alloc->getAllocatedType(), alloc, ast->m_name);
+    else if(llvm::AllocaInst *alloc = values[ast->m_name]){ // Check if name matches a local variable
+        return bldr->CreateLoad(alloc->getAllocatedType(), alloc, ast->m_name);
+    }
+    else {
+        return nullptr;
+    }
 }
 
 llvm::Value* GeneratorVisitor::generate(BinExprAST* ast) {
     llvm::Value * L = ast->m_LHS->accept(this);
     llvm::Value * R = ast->m_RHS->accept(this);
     if (!L || !R) {
-        //return an error
         return nullptr;
     }
     switch (ast->m_op->type) {
         case TokenTypes::Token_Plus: {
-            return bldr->CreateAdd(L, R, "addtmp"); //TODO: CreateFAdd for floats, change when I add floats in
+            return bldr->CreateAdd(L, R, "addtmp");
         }
         case TokenTypes::Token_Minus: {
             return bldr->CreateSub(L, R, "subtmp");
@@ -130,7 +152,6 @@ llvm::Value* GeneratorVisitor::generate(BinExprAST* ast) {
 llvm::Value* GeneratorVisitor::generate(AssignAST* ast) {
     llvm::AllocaInst* alloc = values[ast->m_ident.m_name];
     if(!alloc){
-        //Return error
         return nullptr;
     }
     llvm::Value *ident = bldr->CreateLoad(alloc->getAllocatedType(), alloc, ast->m_ident.m_name);

@@ -1,7 +1,7 @@
 #include "parser.h"
 #include <variant>
 
-std::unique_ptr<Token> Parser::fetchToken(){ //TODO: figure out how to deal with end of file/end of stream
+std::unique_ptr<Token> Parser::fetchToken(){
     if(m_index < m_tokens.size()){
         return std::make_unique<Token>(m_tokens[m_index]);
     }
@@ -26,7 +26,7 @@ std::unique_ptr<IntAST> Parser::parseInt(){
 std::unique_ptr<ExpressionAST> Parser::parseBrac(){
     m_index++;
     auto content = parseBinExpr();
-    if(!content){ //Check for empty brackets case
+    if(!content){ // Check for empty brackets case
         return nullptr;
     }
     if(fetchToken() && fetchToken()->type != TokenTypes::Token_CloseR){
@@ -64,7 +64,7 @@ std::unique_ptr<ExpressionAST> Parser::parseIdent(){
     }
 }
 
-std::unique_ptr<IntDecAST> Parser::parseParam(){ //TODO: support default value for params
+std::unique_ptr<IntDecAST> Parser::parseParam(){
     switch(fetchToken()->type){
         case TokenTypes::Token_Int_Dec: {
             m_index++;
@@ -148,18 +148,18 @@ std::unique_ptr<ExpressionAST> Parser::parseLclIntDec(){
     std::string name = fetchToken()->value.value();
     m_index++;
 
-    //Handle declaration possibility
+    // Handle declaration possibility
     if(fetchToken()->type == TokenTypes::Token_Semi){
         m_index++;
         return std::make_unique<IntDecAST>(IdentAST(name), nullptr);
     }
 
-    //Handle assignment possibility
+    // Handle assignment possibility
     if(fetchToken()->type == TokenTypes::Token_Equal){
         m_index++;
         return std::make_unique<IntDecAST>(IdentAST(name), parseBinExpr());
     }
-    return nullptr; //TODO: Better error handling
+    return nullptr; // TODO: Improve error handling
 }
 
 std::variant<std::unique_ptr<ExpressionAST>, std::unique_ptr<FunctionAST>> Parser::parseGlblIntDec(){
@@ -170,13 +170,13 @@ std::variant<std::unique_ptr<ExpressionAST>, std::unique_ptr<FunctionAST>> Parse
     std::string name = fetchToken()->value.value();
     m_index++;
 
-    //Handle assignment possibility
+    // Handle assignment possibility
     if(fetchToken()->type == TokenTypes::Token_Equal){
         m_index++;
-        return std::make_unique<ExpressionAST>(IntDecAST(IdentAST(name), parseBinExpr()));
+        return std::make_unique<IntDecAST>(IntDecAST(IdentAST(name), parseBinExpr(), true));
     }
 
-    //Handle function declaration/definition possibility
+    // Handle function declaration/definition possibility
     if(fetchToken()->type == TokenTypes::Token_OpenR){
         m_index++;
         std::vector<std::unique_ptr<IntDecAST>> params;
@@ -184,12 +184,12 @@ std::variant<std::unique_ptr<ExpressionAST>, std::unique_ptr<FunctionAST>> Parse
             params.push_back(std::move(param));
             m_index++;
         }
-        std::unique_ptr<FunDecAST> dec = std::make_unique<FunDecAST>("int", name, std::move(params)); //Parse function declaration
-        if(fetchToken()->type == TokenTypes::Token_OpenS){ //Parse function definition
+        std::unique_ptr<FunDecAST> dec = std::make_unique<FunDecAST>("int", name, std::move(params)); // Parse function declaration
+        if(fetchToken()->type == TokenTypes::Token_OpenS){ // Parse function definition
             m_index++;
             return std::make_unique<FunDefAST>(FunDefAST(std::move(dec), parseBody()));;
         }
-        if(fetchToken()->type != TokenTypes::Token_Semi){ //Handle error
+        if(fetchToken()->type != TokenTypes::Token_Semi){ // Handle error
             return LogErrorV("Expected ';'");
         }
         return dec;
@@ -197,7 +197,7 @@ std::variant<std::unique_ptr<ExpressionAST>, std::unique_ptr<FunctionAST>> Parse
     return LogErrorV("Error of some kind");
 }
 
-std::unique_ptr<ExpressionAST> Parser::parseReturn(){ //Verify that it is followed be a ;?
+std::unique_ptr<ExpressionAST> Parser::parseReturn(){
     m_index++;
     return std::make_unique<ReturnAST>(parseBinExpr());
 }
@@ -242,7 +242,7 @@ std::vector<std::unique_ptr<ExpressionAST>> Parser::parseBody(){
                 break;
             }
             case TokenTypes::Token_CloseS: {
-                m_index++; //Close up function
+                m_index++; // Close up function
                 return asts;
             }
             case TokenTypes::Token_Return: {

@@ -1,8 +1,0 @@
-int test(){
-    return (10 - 2)/4;
-}
-
-int main(){
-    int test = 2 + 2 - test();
-    return test;
-}

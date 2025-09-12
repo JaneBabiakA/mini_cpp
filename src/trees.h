@@ -2,8 +2,9 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include "lexer.h" //TODO: phase out
-#include "codegen.h"
+#include "frontend/lexer.h"
+#include<iostream>
+#include "backend/codegen.h"
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/IR/IRBuilder.h>
@@ -22,6 +23,7 @@
 class ExpressionAST{
 public:
     virtual llvm::Value* accept(GeneratorVisitor *visitor){
+        std::cout << "expressionast" << std::endl;
         return nullptr;
     };
 };
@@ -51,11 +53,13 @@ public:
     std::string m_value;
 };
 
-class IntDecAST: public ExpressionAST{ //TODO: add in scoping?
+class IntDecAST: public ExpressionAST{
 public:
-    IntDecAST(IdentAST ident, std::unique_ptr<ExpressionAST> value): m_ident(std::move(ident)), m_value(std::move(value)) {}
+    IntDecAST(IdentAST ident, std::unique_ptr<ExpressionAST> value): m_ident(std::move(ident)), m_value(std::move(value)), m_isGlobal(false) {}
+    IntDecAST(IdentAST ident, std::unique_ptr<ExpressionAST> value, bool isGlobal): m_ident(std::move(ident)), m_value(std::move(value)), m_isGlobal(std::move(isGlobal)) {}
     IdentAST m_ident;
-    std::unique_ptr<ExpressionAST> m_value; //Should be IntAST or CallAST
+    std::unique_ptr<ExpressionAST> m_value;
+    bool m_isGlobal;
     llvm::Value* accept(GeneratorVisitor *visitor){
         return visitor->generate(this);
     }

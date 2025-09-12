@@ -1,4 +1,18 @@
-# mini_cpp
+# Mini C++
 
-Run with: "g++ -std=c++17 main.cpp parser.cpp codegen.cpp `llvm-config --system-libs --cppflags --ldflags --libs core`
-"
+## Usage
+
+Compile the project:
+
+`make`
+
+Note to self: 
+
+./b.out; echo $?
+
+to print out the result of b.out
+
+
+Command line arguments
+
+-o: specify output file name
