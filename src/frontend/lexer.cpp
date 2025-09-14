@@ -4,8 +4,7 @@
 #include<iostream>
 #include "lexer.h"
 
-explicit Lexer::Lexer(std::string input){
-    std::cout << input << std::endl;
+Lexer::Lexer(std::string input){
     m_input = std::move(input);
 }
     
@@ -68,7 +67,14 @@ std::vector<Token> Lexer::lex(){
             tokens.push_back({TokenTypes::Token_Semi});
         }
         else if(fetchChar().value() == '='){
-            tokens.push_back({TokenTypes::Token_Equal});
+            ++m_index;
+            if(fetchChar().value() == '='){
+                tokens.push_back({TokenTypes::Token_Equal});
+            }
+            else{
+                --m_index;
+                tokens.push_back({TokenTypes::Token_Assign});
+            }
         }
         else if(fetchChar().value() == '('){
             tokens.push_back({TokenTypes::Token_OpenR});
@@ -78,6 +84,53 @@ std::vector<Token> Lexer::lex(){
         }
         else if(fetchChar().value() == ','){
             tokens.push_back({TokenTypes::Token_Comma});
+        }
+        else if(fetchChar().value() == '<'){
+            ++m_index;
+            if(fetchChar().value() == '='){
+                tokens.push_back({TokenTypes::Token_LessEqual});
+            }
+            else{
+                --m_index;
+                tokens.push_back({TokenTypes::Token_Less});
+            }
+        }
+        else if(fetchChar().value() == '>'){
+            ++m_index;
+            if(fetchChar().value() == '='){
+                tokens.push_back({TokenTypes::Token_GreaterEqual});
+            }
+            else{
+                --m_index;
+                tokens.push_back({TokenTypes::Token_Greater});
+            }
+        }
+        else if(fetchChar().value() == '!'){
+            ++m_index;
+            if(fetchChar().value() == '='){
+                tokens.push_back({TokenTypes::Token_NotEqual});
+            }
+            else{
+                --m_index;
+            }
+        }
+        else if(fetchChar().value() == '&'){
+            ++m_index;
+            if(fetchChar().value() == '&'){
+                tokens.push_back({TokenTypes::Token_LogicalAnd});
+            }
+            else{
+                --m_index;
+            }
+        }
+        else if(fetchChar().value() == '|'){
+            ++m_index;
+            if(fetchChar().value() == '|'){
+                tokens.push_back({TokenTypes::Token_LogicalOr});
+            }
+            else{
+                --m_index;
+            }
         }
         m_index++;
     }

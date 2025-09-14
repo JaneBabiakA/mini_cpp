@@ -11,7 +11,20 @@
 
 class Parser{
     int m_index = 0;
-    static inline std::map<TokenTypes, int> m_precedence = {{TokenTypes::Token_Plus, 1}, {TokenTypes::Token_Minus, 1}, {TokenTypes::Token_Multiply, 2}, {TokenTypes::Token_Divide, 2}};
+    static inline std::map<TokenTypes, int> m_precedence = {
+        {TokenTypes::Token_Plus, 1},
+        {TokenTypes::Token_Minus, 1},
+        {TokenTypes::Token_Multiply, 3},
+        {TokenTypes::Token_Divide, 3},
+        {TokenTypes::Token_Equal, 2},
+        {TokenTypes::Token_NotEqual, 2},
+        {TokenTypes::Token_LogicalAnd, 2},
+        {TokenTypes::Token_LogicalOr, 2},
+        {TokenTypes::Token_Less, 2},
+        {TokenTypes::Token_Greater, 2},
+        {TokenTypes::Token_LessEqual, 2},
+        {TokenTypes::Token_GreaterEqual, 2},
+    };
     std::vector<Token> m_tokens;
 
     std::unique_ptr<Token> fetchToken();

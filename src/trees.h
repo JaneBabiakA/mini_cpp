@@ -23,7 +23,6 @@
 class ExpressionAST{
 public:
     virtual llvm::Value* accept(GeneratorVisitor *visitor){
-        std::cout << "expressionast" << std::endl;
         return nullptr;
     };
 };

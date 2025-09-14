@@ -143,6 +143,30 @@ llvm::Value* GeneratorVisitor::generate(BinExprAST* ast) {
         case TokenTypes::Token_Divide: {
             return bldr->CreateSDiv(L, R, "divtmp"); // Create a signed division
         }
+        case TokenTypes::Token_Equal: {
+            return bldr->CreateICmpEQ(L, R);
+        }
+        case TokenTypes::Token_NotEqual: {
+            return bldr->CreateICmpNE(L, R);
+        }
+        case TokenTypes::Token_LogicalAnd: {
+            return bldr->CreateAnd(L, R);
+        }
+        case TokenTypes::Token_LogicalOr: {
+            return bldr->CreateOr(L, R);
+        }
+        case TokenTypes::Token_Less: {
+            return bldr->CreateICmpSLT(L, R);
+        }
+        case TokenTypes::Token_Greater: {
+            return bldr->CreateICmpSGT(L, R);
+        }
+        case TokenTypes::Token_LessEqual: {
+            return bldr->CreateICmpSLE(L, R);
+        }
+        case TokenTypes::Token_GreaterEqual: {
+            return bldr->CreateICmpSGE(L, R);
+        }
         default: {
             return nullptr;
         }

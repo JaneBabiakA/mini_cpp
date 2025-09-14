@@ -1,18 +1,23 @@
 # Mini C++
 
-## Usage
+## Getting Started
 
 Compile the project:
 
 `make`
 
-Note to self: 
+## Usage
 
-./b.out; echo $?
+To compile a source file:
 
-to print out the result of b.out
+`./mini_cpp <file name>`
 
+To run the generated executable:
 
-Command line arguments
+`<output file name>; echo $?`
+(output file name defaults to b.out)
 
--o: specify output file name
+### Command Line Arguments
+
+- "-o <filename>": Specify output file name
+- More to come!

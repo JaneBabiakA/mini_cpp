@@ -54,7 +54,7 @@ std::unique_ptr<ExpressionAST> Parser::parseIdent(){
             m_index++;
             return std::make_unique<CallAST>(token->value.value(), std::move(args));
         }
-        case TokenTypes::Token_Equal: {
+        case TokenTypes::Token_Assign: {
             m_index++;
             return std::make_unique<AssignAST>(IdentAST(token->value.value()), parseBinExpr());
         }
@@ -155,7 +155,7 @@ std::unique_ptr<ExpressionAST> Parser::parseLclIntDec(){
     }
 
     // Handle assignment possibility
-    if(fetchToken()->type == TokenTypes::Token_Equal){
+    if(fetchToken()->type == TokenTypes::Token_Assign){
         m_index++;
         return std::make_unique<IntDecAST>(IdentAST(name), parseBinExpr());
     }
@@ -171,7 +171,7 @@ std::variant<std::unique_ptr<ExpressionAST>, std::unique_ptr<FunctionAST>> Parse
     m_index++;
 
     // Handle assignment possibility
-    if(fetchToken()->type == TokenTypes::Token_Equal){
+    if(fetchToken()->type == TokenTypes::Token_Assign){
         m_index++;
         return std::make_unique<IntDecAST>(IntDecAST(IdentAST(name), parseBinExpr(), true));
     }

@@ -19,12 +19,10 @@ Request::Request(int length, char* command[]){
     int argPos = 2;
     while(argPos < length - 1){
         if(!args.contains(command[argPos])){
-            throw std::invalid_argument("Compiler flag '");
-            // throw std::invalid_argument("Compiler flag '" + *command[argPos]);
+            throw std::invalid_argument("Compiler flag ");
         }
         else if(args.contains(command[argPos + 1])){
-            throw std::invalid_argument("Missing value for compiler flag '");
-            // throw std::invalid_argument("Missing value for compiler flag '" + *command[argPos]);
+            throw std::invalid_argument("Missing value for compiler flag'");
         }
         else {
             args[command[argPos]] = command[argPos + 1];
